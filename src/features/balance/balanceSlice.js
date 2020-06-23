@@ -16,14 +16,14 @@ export const balanceSlice = createSlice({
 
 export const { setKavaAmount } = balanceSlice.actions;
 
-export const setKavaAmountAsync = address => dispatch => {
-  fetch('https://kava3.data.kava.io/auth/accounts/' + address)
-    .then(response => response.json())
-    .then(data => {
-      const coins = data.result.value.coins;
-      const ukava = coins.find(coin => coin.denom === 'ukava');
-      dispatch(setKavaAmount(ukava.amount));
-    });
+export const setKavaAmountAsync = address => async dispatch => {
+  const response = await fetch('https://kava3.data.kava.io/auth/accounts/' + address)
+  const data = await response.json()
+
+  const coins = data.result.value.coins;
+  const ukava = coins.find(coin => coin.denom === 'ukava');
+
+  dispatch(setKavaAmount(ukava.amount));
 }
 
 export const selectKavaAmount = state => state.balance.kavaAmount;
