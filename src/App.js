@@ -5,10 +5,12 @@ import { makeStyles } from '@material-ui/core/styles';
 import { CosmosLedger } from './features/ledger/ledger';
 import { LedgerConnect } from './features/ledger/LedgerConnect';
 import { selectConnectionState, selectConnectionError, status } from './features/ledger/ledgerSlice';
-//import { Balance } from './features/balance/Balance';
+import { CosmosAPI } from './features/api/CosmosAPI';
+import { APIConnect } from './features/api/APIConnect';
 import logo from './logo.svg';
 
 const ledger = new CosmosLedger();
+const cosmosAPI = new CosmosAPI("http://127.0.0.1:1317", ledger);
 
 const useStyles = makeStyles({
   root: {
@@ -40,6 +42,7 @@ function App() {
           <Typography variant="h5" component="p" color="secondary">
             "Connected!"
           </Typography>
+          <APIConnect cosmosAPI={cosmosAPI}/>
         </Box>
       )
       break;
