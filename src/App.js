@@ -1,10 +1,11 @@
 import React from 'react';
-import { Box, Container, CircularProgress, Typography } from '@material-ui/core';
+import { Box, Container, Typography } from '@material-ui/core';
 import { useSelector } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 import { CosmosLedger } from './features/ledger/ledger';
 import { LedgerConnect } from './features/ledger/LedgerConnect';
 import { selectConnectionState, selectConnectionError, status } from './features/ledger/ledgerSlice';
+import { Loading } from './features/common/Loading';
 import { CosmosAPI } from './features/api/CosmosAPI';
 import { APIConnect } from './features/api/APIConnect';
 import logo from './logo.svg';
@@ -45,35 +46,22 @@ function App() {
       )
       break;
     case status.CONNECTING:
+      component = <Loading message="Connecting..."/>
+      break;
+    case status.DISCONNECTED:
+      component = <LedgerConnect ledger={ledger}/>
+      break;
+    case status.FAILED:
+      component = <LedgerConnect ledger={ledger} errorMessage={connectionError}/>
+      break;
+    default:
       component = (
         <Box paddingTop={2}>
-          <CircularProgress color="secondary" size={80}/>
-          <Typography variant="h5" component="p" color="secondary">
-            Connecting...
+          <Typography variant="h5" component="p" color="error">
+            An unkown error has occurred! Please refresh the page.
           </Typography>
         </Box>
       )
-      break;
-    case status.DISCONNECTED:
-      component = (
-        <React.Fragment>
-          <LedgerConnect ledger={ledger}/>
-        </React.Fragment>
-      )
-        break;
-    case status.FAILED:
-      component = (
-        <React.Fragment>
-         <LedgerConnect ledger={ledger}/>
-         <Box paddingTop={1}>
-          <Typography variant="h5" component="p" color="error">
-              { connectionError }
-          </Typography>
-          </Box>
-        </React.Fragment>
-      )
-      break;
-    default:
       break;
   }
 
