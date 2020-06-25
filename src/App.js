@@ -10,12 +10,8 @@ import { APIConnect } from './features/api/APIConnect';
 import logo from './logo.svg';
 import { COSMOS_URL } from './config';
 
-// temp test for netfily.toml config
-console.log(COSMOS_URL)
-
 const ledger = new CosmosLedger();
 const cosmosAPI = new CosmosAPI(COSMOS_URL, ledger);
-
 
 const useStyles = makeStyles({
   root: {
