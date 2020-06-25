@@ -1,5 +1,8 @@
 import Cosmos from "@lunie/cosmos-api"
 
+// TODO: put in config
+const chainID = "testing"
+
 export class CosmosAPI {
   constructor(url, ledger) {
     this._url = url;
@@ -9,8 +12,7 @@ export class CosmosAPI {
   }
 
   async init() {
-    const address = await this._ledger.getAddress();
-    this._cosmosAPI = new Cosmos(this._url, address);
+    this._cosmosAPI = new Cosmos(this._url, chainID);
     return this._cosmosAPI;
   }
 
@@ -31,23 +33,25 @@ export class CosmosAPI {
   }
 
   // -----------------------------------
-  //            HTTP post
+  //            HTTP options
   // -----------------------------------
 
   async broadcast(msg) {
+    // TODO: Replace gas amount with 'gasEstimate'
+    // const gasEstimate = await this.simulate({}, msg)
+    // console.log("gasEstimate:", gasEstimate)
+
     const signer = this._ledger.getSigner();
-    const { included } = await msg.send({ gas: 200000 }, signer)
-    return included()
+    return await this.send({ gas: '250000' }, msg, signer);
   }
 
-  // -----------------------------------
-  //               Msgs
-  // -----------------------------------
+  async send({ gas, gasPrices, memo = undefined }, message, signer) {
+    const senderAddress = await this.getAccountAddress();
+    return await this._cosmosAPI.send(senderAddress, { gas, gasPrices, memo }, message, signer)
+  }
 
-  MsgSend(sender, recipient, denom, amount) {
-    return this._cosmosAPI.MsgSend(sender, {
-      toAddress: recipient,
-      amounts: [{ denom: denom, amount: amount }],
-    })
+  async simulate({ memo = undefined }, message) {
+    const senderAddress = await this.getAccountAddress();
+    return await this._cosmosAPI.simulate(senderAddress, { message, memo });
   }
 }

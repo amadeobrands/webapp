@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
+import Kava from '@kava-labs/javascript-sdk';
 
 export const apiSlice = createSlice({
   name: 'api',
@@ -27,18 +28,30 @@ export const initApiAsync = cosmosAPI => async dispatch => {
   }
 }
 
-export const postMsgAsync = (cosmosAPI, recipient, denom, amount) => async dispatch => {
+export const postMsgSendAsync = (cosmosAPI, recipient, denom, amount) => async dispatch => {
   const sender = await cosmosAPI.getAccountAddress();
-  const acc = await cosmosAPI.getAccount(sender);
-  console.log("Ledger wallet account:", acc)
-
-  // Build the Send msg
-  const msg = cosmosAPI.MsgSend(sender, recipient, denom, amount);
-  console.log("msg:", msg);
+  const coins = Kava.utils.formatCoins(amount, denom);
+  const msg = Kava.msg.newMsgSend(sender, recipient, coins);
 
   // Sign and broadcast the transaction
   await cosmosAPI.broadcast(msg);
+  dispatch(posted());
+}
 
+export const postMsgCreateCdpAsync = (
+  cosmosAPI,
+  collateralDenom,
+  collateralAmount,
+  principalDenom,
+  principalAmount
+) => async dispatch => {
+  const sender = await cosmosAPI.getAccountAddress();
+  const collateral = Kava.utils.formatCoins(collateralAmount, collateralDenom);
+  const principal = Kava.utils.formatCoins(principalAmount, principalDenom);
+  const msg = Kava.msg.newMsgCreateCDP(sender, principal, collateral);
+
+  // Sign and broadcast the transaction
+  await cosmosAPI.broadcast(msg);
   dispatch(posted());
 }
 
