@@ -13,7 +13,7 @@ export function APIConnect({ cosmosAPI }) {
   let [denom, setDenom] = useState('');
   let [amount, setAmount] = useState('');
 
-  let component
+  let component;
   switch(loaded) {
     case false:
       if(!posted) {
@@ -27,7 +27,7 @@ export function APIConnect({ cosmosAPI }) {
               Init
             </Button>
           </Box>
-        )       
+        )
       } else {
         component = (
         <Box paddingTop={1}>
@@ -65,6 +65,9 @@ export function APIConnect({ cosmosAPI }) {
           </Button>
         </Box>
       )
+      break;
+    default:
+      break;
     }
 
     // Render
