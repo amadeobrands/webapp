@@ -28,13 +28,12 @@ export const initApiAsync = cosmosAPI => async dispatch => {
 }
 
 export const postMsgAsync = (cosmosAPI, recipient, denom, amount) => async dispatch => {
-
   const sender = await cosmosAPI.getAccountAddress();
   const acc = await cosmosAPI.getAccount(sender);
   console.log("Ledger wallet account:", acc)
 
   // Build the Send msg
-  const msg = cosmosAPI.MsgSend2(sender, recipient, denom, amount);
+  const msg = cosmosAPI.MsgSend(sender, recipient, denom, amount);
   console.log("msg:", msg);
 
   // Sign and broadcast the transaction
