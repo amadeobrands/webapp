@@ -1,0 +1,8 @@
+[context.production.environment]
+  REACT_APP_COSMOS_URL = "https://kava3.data.kava.io"
+
+[context.deploy-preview.environment]
+  REACT_APP_COSMOS_URL = "https://kava3.data.kava.io"
+
+[context.branch-deploy.environment]
+  REACT_APP_COSMOS_URL = "https://kava3.data.kava.io"
