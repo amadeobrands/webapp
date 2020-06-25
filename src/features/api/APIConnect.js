@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Box, Button } from '@material-ui/core';
 import { initApiAsync, postMsgAsync, selectIsLoaded, selectIsPosted} from './apiSlice';
+import { Loading } from '../common/Loading';
 
 export function APIConnect({ cosmosAPI }) {
   const dispatch = useDispatch();
@@ -13,21 +14,16 @@ export function APIConnect({ cosmosAPI }) {
   let [denom, setDenom] = useState('');
   let [amount, setAmount] = useState('');
 
+  useEffect(() => {
+    dispatch(initApiAsync(cosmosAPI));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   let component;
   switch(loaded) {
     case false:
       if(!posted) {
-        component = (
-          <Box paddingTop={1}>
-            <Button
-            variant="outlined"
-            color="secondary"
-            size="large"
-            onClick={() => dispatch(initApiAsync(cosmosAPI))}>
-              Init
-            </Button>
-          </Box>
-        )
+        component = <Loading message="Initializing..."/>
       } else {
         component = (
         <Box paddingTop={1}>
