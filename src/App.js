@@ -8,9 +8,14 @@ import { selectConnectionState, selectConnectionError, status } from './features
 import { CosmosAPI } from './features/api/CosmosAPI';
 import { APIConnect } from './features/api/APIConnect';
 import logo from './logo.svg';
+import { COSMOS_URL } from './config';
+
+// temp test for netfily.toml config
+console.log(COSMOS_URL)
 
 const ledger = new CosmosLedger();
-const cosmosAPI = new CosmosAPI("http://127.0.0.1:1317", ledger);
+const cosmosAPI = new CosmosAPI(COSMOS_URL, ledger);
+
 
 const useStyles = makeStyles({
   root: {
@@ -39,9 +44,6 @@ function App() {
     case status.CONNECTED:
       component = (
         <Box paddingTop={1}>
-          <Typography variant="h5" component="p" color="secondary">
-            "Connected!"
-          </Typography>
           <APIConnect cosmosAPI={cosmosAPI}/>
         </Box>
       )
@@ -50,6 +52,9 @@ function App() {
       component = (
         <Box paddingTop={2}>
           <CircularProgress color="secondary" size={80}/>
+          <Typography variant="h5" component="p" color="secondary">
+            Connecting...
+          </Typography>
         </Box>
       )
       break;
