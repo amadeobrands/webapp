@@ -20,10 +20,10 @@ export function CreateCDP({ cosmosAPI }) {
             style={{ margin: 8 }}
             placeholder="bnb"
             margin="normal"
+            onChange={e => setCollateralDenom(e.target.value)}
             InputLabelProps={{
             value: collateralDenom,
-            shrink: true,
-            onChange: e => setCollateralDenom(e.target.value)
+            shrink: true
             }}
         />
         <TextField
@@ -32,10 +32,10 @@ export function CreateCDP({ cosmosAPI }) {
             style={{ margin: 8 }}
             placeholder="100"
             margin="normal"
+            onChange={e => setCollateralAmount(e.target.value)}
             InputLabelProps={{
             value: collateralAmount,
-            shrink: true,
-            onChange: e => setCollateralAmount(e.target.value)
+            shrink: true
             }}
         />    
     </Box>
@@ -46,10 +46,10 @@ export function CreateCDP({ cosmosAPI }) {
             style={{ margin: 8 }}
             placeholder="usdx"
             margin="normal"
+            onChange={e => setPrincipalDenom(e.target.value)}
             InputLabelProps={{
             value: principalDenom,
-            shrink: true,
-            onChange: e => setPrincipalDenom(e.target.value)
+            shrink: true
             }}
         />
         <TextField
@@ -58,10 +58,10 @@ export function CreateCDP({ cosmosAPI }) {
             style={{ margin: 8 }}
             placeholder="100"
             margin="normal"
+            onChange={e => setPrincipalAmount(e.target.value)}
             InputLabelProps={{
             value: principalAmount,
-            shrink: true,
-            onChange: e => setPrincipalAmount(e.target.value)
+            shrink: true
             }}
         />    
     </Box>    

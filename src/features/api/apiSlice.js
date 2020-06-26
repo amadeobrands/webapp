@@ -31,11 +31,31 @@ export const initApiAsync = cosmosAPI => async dispatch => {
 export const postMsgSendAsync = (cosmosAPI, recipient, denom, amount) => async dispatch => {
   const sender = await cosmosAPI.getAccountAddress();
   const coins = Kava.utils.formatCoins(amount, denom);
-  const msg = Kava.msg.newMsgSend(sender, recipient, coins);
+  const msgSend = Kava.msg.newMsgSend(sender, recipient, coins);
+
+  // NOTE: msgSend's json is formatted as:
+  // {
+  //   type: 'cosmos-sdk/MsgSend',
+  //   value: {
+  //     from_address: sender,
+  //     to_address: recipient,
+  //     amount: [{amount: String(amount), denom: String(denom)}],
+  //   }
+  // }
+
+  const fee = { amount: [], gas: `200000` };
+  const stdTx = Kava.msg.newStdTx([msgSend], fee, '200000');
+
+  const signInfo = await cosmosAPI.prepareSignInfo();
+  const signedTx = await cosmosAPI.signTx(stdTx, signInfo)
+  console.log("signedTx:", signedTx);
+
+  // TODO: broadcast signed transaction:
+  // await cosmosAPI.broadcastTx(signedTx);
 
   // Sign and broadcast the transaction
-  await cosmosAPI.broadcast(msg);
-  dispatch(posted());
+  // await cosmosAPI.broadcast(msgSend);
+  // dispatch(posted());
 }
 
 export const postMsgCreateCdpAsync = (

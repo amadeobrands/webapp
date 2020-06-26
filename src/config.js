@@ -14,3 +14,5 @@ if (process.env.REACT_APP_COSMOS_URL) {
 }
 
 export const COSMOS_URL = cosmosURL;
+
+export const CHAIN_ID = 'testing';

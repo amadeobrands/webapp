@@ -5,6 +5,7 @@
   "dependencies": {
     "@kava-labs/javascript-sdk": "^2.0.0-beta.6",
     "@lunie/cosmos-api": "^0.2.5",
+    "@lunie/cosmos-keys": "^0.2.3",
     "@lunie/cosmos-ledger": "^0.1.8",
     "@material-ui/core": "^4.10.2",
     "@material-ui/icons": "^4.9.1",
@@ -14,6 +15,7 @@
     "@testing-library/react": "^9.5.0",
     "@testing-library/user-event": "^7.2.1",
     "fontsource-roboto": "^2.1.4",
+    "lodash": "^4.17.15",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-redux": "^7.2.0",
