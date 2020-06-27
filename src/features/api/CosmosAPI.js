@@ -56,8 +56,8 @@ export class CosmosAPI {
     const accountResponse = await fetch(this._url + '/auth/accounts/' + sender);
     const accountData = await accountResponse.json()
 
-    const account_number = accountData.result.value.account_number;
-    const sequence = accountData.result.value.sequence;
+    const account_number = accountData.result.value.account_number.toString();
+    const sequence = accountData.result.value.sequence.toString();
 
     // object to sign
     const signTx = {
@@ -66,7 +66,7 @@ export class CosmosAPI {
       fee: stdTx.value.fee,
       memo: stdTx.value.memo,
       msgs: stdTx.value.msg,
-      sequence: sequence,
+      sequence: sequence
     }
 
     console.log(signTx);
