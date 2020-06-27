@@ -13,31 +13,11 @@ export class CosmosLedger {
     return this._ledger.getCosmosAddress();
   }
 
-  getSigner() {
-    return async (signMessage) => {
-      const publicKey = await this._ledger.getPubKey();
-      const signature = new BuffWrapper(await this._ledger.sign(signMessage));
-
-      return {
-        signature,
-        publicKey
-      }
-    }
+  async getPubKey() {
+    return this._ledger.getPubKey();
   }
-}
 
-// NOTE: Gives Buffer compatible interface for Uint8Array
-// Cosmos API expects a toString('base64') method for
-// signature encoding
-class BuffWrapper {
-  constructor(sig) {
-    this._sig = sig;
-  }
-  toString(encoding) {
-    if (encoding !== 'base64') {
-      throw new Error('unknown encoding: ' + encoding);
-    }
-
-    return btoa(String.fromCharCode(...this._sig));
+  async sign(signMessage) {
+    return this._ledger.sign(signMessage);
   }
 }
