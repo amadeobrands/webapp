@@ -63,23 +63,26 @@ export function CreateCDP({ cosmosAPI }) {
             value: principalAmount,
             shrink: true
             }}
-        />    
-    </Box>    
+        />
+    </Box>
     <br/>
-    <Button
-        variant="outlined"
-        color="secondary"
-        size="large"
-        onClick={() => dispatch(
-        postMsgCreateCdpAsync(
-            cosmosAPI,
-            collateralDenom,
-            collateralAmount,
-            principalDenom,
-            principalAmount)
-        )}>
-        Create CDP
-    </Button>
+    <Box width="227px" margin="auto">
+      <Button
+          variant="contained"
+          color="secondary"
+          size="large"
+          fullWidth={true}
+          onClick={() => dispatch(
+          postMsgCreateCdpAsync(
+              cosmosAPI,
+              collateralDenom,
+              collateralAmount,
+              principalDenom,
+              principalAmount)
+          )}>
+          Create CDP
+        </Button>
+      </Box>
     </Box>
     )
 }

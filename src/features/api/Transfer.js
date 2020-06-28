@@ -52,13 +52,16 @@ export function Transfer({ cosmosAPI }) {
             />
         </Box>
         <br/>
-        <Button
-            variant="outlined"
-            color="secondary"
-            size="large"
-            onClick={() => dispatch(postMsgSendAsync(cosmosAPI, recipient, denom, amount))}>
-            Transfer
-        </Button>
+        <Box width="227px" margin="auto">
+          <Button
+              variant="contained"
+              color="secondary"
+              size="large"
+              fullWidth={true}
+              onClick={() => dispatch(postMsgSendAsync(cosmosAPI, recipient, denom, amount))}>
+              Transfer
+          </Button>
+        </Box>
     </Box>
     )
 }
