@@ -9,6 +9,10 @@ export class CosmosLedger {
     return this._ledger.connect();
   }
 
+  reset() {
+    this._ledger.cosmosApp = null;
+  }
+
   async getAddress() {
     return this._ledger.getCosmosAddress();
   }
