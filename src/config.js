@@ -6,6 +6,7 @@
  */
 
 let cosmosURL;
+let chainID;
 
 if (process.env.REACT_APP_COSMOS_URL) {
   cosmosURL = process.env.REACT_APP_COSMOS_URL;
@@ -15,4 +16,10 @@ if (process.env.REACT_APP_COSMOS_URL) {
 
 export const COSMOS_URL = cosmosURL;
 
-export const CHAIN_ID = 'testing';
+if (process.env.REACT_APP_CHAIN_ID) {
+  chainID = process.env.REACT_APP_CHAIN_ID;
+} else {
+  chainID = 'testing';
+}
+
+export const CHAIN_ID = chainID;
