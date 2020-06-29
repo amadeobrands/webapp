@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Box, Button, Typography} from '@material-ui/core';
 import { ToggleButton, ToggleButtonGroup } from '@material-ui/lab/';
-import { TrendingFlat, AttachMoney } from '@material-ui/icons';
+import { AccountBalance, TrendingFlat, AttachMoney } from '@material-ui/icons';
 import { idle, txState, selectTxState, selectTxError, selectTxErrorState } from './apiSlice';
 import { Transfer } from './Transfer';
 import { CreateCDP } from './CreateCDP';
 import { Loading } from '../common/Loading';
+import { Wallet } from '../wallet/Wallet';
 
 const txMessage = {
   [txState.PREPARING]: 'Preparing',
@@ -35,7 +36,7 @@ function txCompleted(state) {
 
 export function APIConnect({ cosmosAPI }) {
   const dispatch = useDispatch();
-  const [view, setView] = useState('transfer');
+  const [view, setView] = useState('wallet');
   const currentTxState = useSelector(selectTxState);
   const txError = useSelector(selectTxError);
   const txErrorState = useSelector(selectTxErrorState);
@@ -48,6 +49,9 @@ export function APIConnect({ cosmosAPI }) {
 
   if (txIsIdle(currentTxState)) {
     switch(view) {
+      case 'wallet':
+        component = <Wallet cosmosAPI={cosmosAPI} />
+        break
       case 'transfer':
         component = <Transfer cosmosAPI={cosmosAPI} />
         break;
@@ -106,16 +110,20 @@ export function APIConnect({ cosmosAPI }) {
     <Box>
       { txIsIdle(currentTxState) &&
         <ToggleButtonGroup orientation="horizontal" value={view} exclusive onChange={handleChange}>
-        <ToggleButton value="transfer" aria-label="transfer">
-          <TrendingFlat />
-        </ToggleButton>
-        <ToggleButton value="createCDP" aria-label="createCDP">
-          <AttachMoney />
-        </ToggleButton>
+          <ToggleButton value="wallet" aria-label="wallet">
+            <AccountBalance />
+          </ToggleButton>
+          <ToggleButton value="transfer" aria-label="transfer">
+            <TrendingFlat />
+          </ToggleButton>
+          <ToggleButton value="createCDP" aria-label="createCDP">
+            <AttachMoney />
+          </ToggleButton>
         </ToggleButtonGroup>
       }
-      {component}
+        <Box>
+          {component}
+        </Box>
     </Box>
   )
 }
-

@@ -8,6 +8,10 @@ export class CosmosAPI {
     return this
   }
 
+  getUrl() {
+    return this._url;
+  }
+
   async getWalletAddress() {
     return await this._ledger.getAddress();
   }
