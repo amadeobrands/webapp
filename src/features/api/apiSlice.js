@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
+import Kava from '@kava-labs/javascript-sdk';
 
 export const txState = {
   IDLE: 'idle',
@@ -58,12 +59,11 @@ export const apiSlice = createSlice({
 
 export const { idle, preparing, signing, broadcasting, confirming, errored, completed } = apiSlice.actions;
 
-export const postMsgSendAsync = (cosmosAPI, recipient, denom, amount) => async dispatch => {
+export const postTxAsync = (cosmosAPI, msg) => async dispatch => {
   try {
     dispatch(preparing());
     const [address, accountNumber, sequence] = await cosmosAPI.getAccountInfo();
-    const msg = cosmosAPI.MsgSend(address, recipient, denom, amount);
-
+    
     dispatch(signing());
     const signedTx = await cosmosAPI.signTxForMsg(msg, accountNumber, sequence);
 
@@ -81,7 +81,8 @@ export const postMsgSendAsync = (cosmosAPI, recipient, denom, amount) => async d
     }
 
     dispatch(confirming());
-    const txHash = response.txHash;
+    const txHash = response.txhash;
+
     const included = await cosmosAPI.waitForBlock(txHash);
 
     if (included) {
@@ -90,10 +91,16 @@ export const postMsgSendAsync = (cosmosAPI, recipient, denom, amount) => async d
       dispatch(errored('Timeout while waiting for transaction to be included in block'));
     }
   } catch(e) {
-    dispatch(errored(e.toString()));
+    dispatch(errored(e));
     return;
   }
+}
 
+export const postMsgSendAsync = (cosmosAPI, recipient, denom, amount) => async dispatch => {
+  const sender = await cosmosAPI.getWalletAddress();
+  const coins = Kava.utils.formatCoins(amount, denom);
+  const msg = Kava.msg.newMsgSend(sender, recipient, coins);
+  return dispatch(postTxAsync(cosmosAPI, msg));
 }
 
 export const postMsgCreateCdpAsync = (
@@ -101,17 +108,87 @@ export const postMsgCreateCdpAsync = (
   collateralDenom,
   collateralAmount,
   principalDenom,
-  principalAmount
+  principalAmount) => async dispatch => {
+  const sender = await cosmosAPI.getWalletAddress();
+  const collateral = Kava.utils.formatCoin(collateralAmount, collateralDenom);
+  const principal = Kava.utils.formatCoin(principalAmount, principalDenom);
+  const msg = Kava.msg.newMsgCreateCDP(sender, principal, collateral);
+  return dispatch(postTxAsync(cosmosAPI, msg));
+}
+
+export const postMsgDepositAsync = (cosmosAPI, owner, collateralDenom, collateralAmount) => async dispatch => {
+  const sender = await cosmosAPI.getWalletAddress();
+  if(!owner) { owner = sender; }  // Default to sender's CDP
+  const collateral = Kava.utils.formatCoin(collateralAmount, collateralDenom);
+  const msg = Kava.msg.newMsgDeposit(owner, sender, collateral);
+  return dispatch(postTxAsync(cosmosAPI, msg));
+}
+
+export const postMsgWithdrawAsync = (cosmosAPI, owner, collateralDenom, collateralAmount) => async dispatch => {
+  const sender = await cosmosAPI.getWalletAddress();
+  if(!owner) { owner = sender; }  // Default to sender's CDP
+  const collateral = Kava.utils.formatCoin(collateralAmount, collateralDenom);
+  const msg = Kava.msg.newMsgWithdraw(owner, sender, collateral);
+  return dispatch(postTxAsync(cosmosAPI, msg));
+}
+
+export const postMsgDrawDebtAsync = (cosmosAPI, cdpDenom, principalDenom, principalAmount) => async dispatch => {
+  const owner = await cosmosAPI.getWalletAddress();
+  const principal = Kava.utils.formatCoin(principalAmount, principalDenom);
+  const msg = Kava.msg.newMsgDrawDebt(owner, cdpDenom, principal);
+  return dispatch(postTxAsync(cosmosAPI, msg));
+}
+
+export const postMsgRepayDebtAsync = (cosmosAPI, cdpDenom, principalDenom, principalAmount) => async dispatch => {
+  const owner = await cosmosAPI.getWalletAddress();
+  const principal = Kava.utils.formatCoin(principalAmount, principalDenom);
+  const msg = Kava.msg.msgRepayDebt(owner, principal, cdpDenom);
+  return dispatch(postTxAsync(cosmosAPI, msg));
+}
+
+export const postMsgCreateSwap = (
+  cosmosAPI,
+  recipient,
+  recipientOtherChain,
+  senderOtherChain,
+  randomNumberHash,
+  timestamp,
+  coinDenom,
+  coinAmount,
+  heightSpan,
 ) => async dispatch => {
-  await cosmosAPI.getAddress();
+  const sender = await cosmosAPI.getWalletAddress();
+  const amount = Kava.utils.formatCoins(coinAmount, coinDenom);
+  const msg = Kava.msg.newMsgCreateAtomicSwap(
+    sender,
+    recipient,
+    recipientOtherChain,
+    senderOtherChain,
+    randomNumberHash.toUpperCase(),
+    timestamp,
+    amount,
+    heightSpan
+  );
+  return dispatch(postTxAsync(cosmosAPI, msg));
+}
 
-  //const sender = await cosmosAPI.getAccountAddress();
-  //const collateral = Kava.utils.formatCoins(collateralAmount, collateralDenom);
-  //const principal = Kava.utils.formatCoins(principalAmount, principalDenom);
-  //const msg = Kava.msg.newMsgCreateCDP(sender, principal, collateral);
+export const postMsgClaimSwap = (cosmosAPI, swapID, randomNumber) => async dispatch => {
+  const sender = await cosmosAPI.getWalletAddress();
+  const msg = Kava.msg.newMsgClaimAtomicSwap(
+    sender,
+    swapID.toUpperCase(),
+    randomNumber.toUpperCase()
+  );
+  return dispatch(postTxAsync(cosmosAPI, msg));
+}
 
-  //// Sign and broadcast the transaction
-  //await cosmosAPI.broadcast(msg);
+export const postMsgRefundSwap = (cosmosAPI, swapID) => async dispatch => {
+  const sender = await cosmosAPI.getWalletAddress();
+  const msg = Kava.msg.newMsgRefundAtomicSwap(
+    sender,
+    swapID.toUpperCase()
+  );
+  return dispatch(postTxAsync(cosmosAPI, msg));
 }
 
 export const selectTxState = state => state.api.txState;
