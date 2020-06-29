@@ -1,32 +1,5 @@
-import Kava from '@kava-labs/javascript-sdk';
 import { toCanonicalJSONString, bytesToBase64 } from '@tendermint/belt';
-//const sender = await cosmosAPI.getAccountAddress();
-  //const coins = Kava.utils.formatCoins(amount, denom);
-  //const msgSend = Kava.msg.newMsgSend(sender, recipient, coins);
 
-  //// NOTE: msgSend's json is formatted as:
-  //// {
-  ////   type: 'cosmos-sdk/MsgSend',
-  ////   value: {
-  ////     from_address: sender,
-  ////     to_address: recipient,
-  ////     amount: [{amount: String(amount), denom: String(denom)}],
-  ////   }
-  //// }
-
-  //const fee = { amount: [], gas: `200000` };
-  //const stdTx = Kava.msg.newStdTx([msgSend], fee, '200000');
-
-  //const signInfo = await cosmosAPI.prepareSignInfo();
-  //const signedTx = await cosmosAPI.signTx(stdTx, signInfo)
-  //console.log("signedTx:", signedTx);
-
-  //// TODO: broadcast signed transaction:
-  //// await cosmosAPI.broadcastTx(signedTx);
-
-  //// Sign and broadcast the transaction
-  //// await cosmosAPI.broadcast(msgSend);
-  //// dispatch(posted());
 export class CosmosAPI {
   constructor(url, chainID, ledger) {
     this._url = url;
@@ -35,53 +8,53 @@ export class CosmosAPI {
     return this
   }
 
-  async MsgSend(recipient, denom, amount) {
-    // Get Ledger Kava Address
-    const sender = await this._ledger.getAddress();
-    // Format coins for MsgSend JSON
-    const coins = Kava.utils.formatCoins(amount, denom);
-    // Create Message to include in tx
-    // {
-    //   type: 'cosmos-sdk/MsgSend',
-    //   value: {
-    //     from_address: sender,
-    //     to_address: recipient,
-    //     amount: [{amount: String(amount), denom: String(denom)}],
-    //   }
-    // }
-    const msgSend = Kava.msg.newMsgSend(sender, recipient, coins);
-    // Create stdTx using Kava SDK fee and gas defaults
-    const stdTx = Kava.msg.newStdTx([msgSend])
+  async getAccountInfo() {
+    const address = await this._ledger.getAddress();
 
-    const accountResponse = await fetch(this._url + '/auth/accounts/' + sender);
-    const accountData = await accountResponse.json()
+    const accountResponse = await fetch(this._url + '/auth/accounts/' + address);
+    const accountData = await accountResponse.json();
 
-    const account_number = accountData.result.value.account_number.toString();
+    const accountNumber = accountData.result.value.account_number.toString();
     const sequence = accountData.result.value.sequence.toString();
 
-    // object to sign
+    return [address, accountNumber, sequence];
+  }
+
+  MsgSend(sender, recipient, denom, amount) {
+    return {
+      type: 'cosmos-sdk/MsgSend',
+      value: {
+        from_address: sender,
+        to_address: recipient,
+        amount: [
+          {
+            denom: denom,
+            amount: amount,
+          },
+        ]
+      },
+    };
+  }
+
+  async signTxForMsg(msg, accountNumber, sequence) {
     const signTx = {
-      account_number: account_number,
+      account_number: accountNumber,
       chain_id: this._chainID,
-      fee: stdTx.value.fee,
-      memo: stdTx.value.memo,
-      msgs: stdTx.value.msg,
-      sequence: sequence
+      fee: { amount: [], gas: '250000' },
+      memo: '',
+      msgs: [msg],
+      sequence: sequence,
     }
 
-    console.log(signTx);
-
-    // sort and format to json string for ledger signing
     const signMsg = toCanonicalJSONString(signTx);
 
-    // get pubkey and signature from ledger
     const pubKey = await this._ledger.getPubKey();
     const signature = await this._ledger.sign(signMsg);
 
-    const signedTx = {
-      msg: stdTx.value.msg,
-      fee: stdTx.value.fee,
-      memo: stdTx.value.memo,
+    return {
+      msg: signTx.msgs,
+      fee: signTx.fee,
+      memo: signTx.memo,
       signatures: [
         {
           signature: bytesToBase64(signature),
@@ -92,10 +65,9 @@ export class CosmosAPI {
         }
       ]
     };
+  }
 
-    console.log(signedTx);
-
-    // broadcast
+  async broadcastTx(signedTx) {
     const response = await fetch(this._url + '/txs', {
       method: 'POST',
       headers: {
@@ -107,68 +79,52 @@ export class CosmosAPI {
       })
     });
 
-    const data = await response.json();
+    if (!response.ok) {
+      throw new Error('could not broadcast transaction');
+    }
 
-    console.log(data);
+    return response.json();
   }
 
+  async waitForBlock(txHash, timeout = 60000) {
+    return true;
+    //const beginTime = (new Date()).getTime();
+    //let backoff = 500;
 
-  //async getAccount(addr) {
-  //  return await this._cosmosAPI.get.account(addr)
-  //}
+    //return new Promise((resolve, reject) => {
+    //  const checkTx = () => {
+    //    if ((new Date()).getTime() - beginTime > timeout) {
+    //      resolve(false);
+    //      return;
+    //    }
 
-  //async prepareSignInfo() {
-  //  // Fetch and parse account meta data 
-  //  const acc = await this.getAccount(await this.getAccountAddress());
+    //    fetch(this._url + '/txs/' + txHash).then(response => {
+    //      // not included yet
+    //      if (!response.ok) {
+    //        backoff = backoff * 2;
+    //        setTimeout(checkTx, backoff);
+    //      }
 
-  //  let accNum;
-  //  let seqNum;
-  //  if(acc) {
-  //    accNum = acc.account_number;
-  //    seqNum = acc.sequence;
-  //  }
-  //  if (!(accNum || seqNum)) {
-  //    console.log('Error: account number or sequence number from rest server are undefined');
-  //  }
+    //      response.json().then(data => {
+    //        if (data.code) {
+    //          reject(data.raw_log)
+    //          return;
+    //        }
 
-  //  // Package signing info
-  //  const signInfo = {
-  //    chain_id: this._chainID,
-  //    account_number: accNum,
-  //    sequence: seqNum,
-  //  };
+    //        if (data.error) {
+    //          reject(data.raw_log)
+    //          return;
+    //        }
 
-  //  return signInfo;
-  //}
+    //        resolve(true);
+    //      })
+    //    }).catch(() => {
+    //      backoff = backoff * 2;
+    //      setTimeout(checkTx, backoff);
+    //    });
+    //  }
 
-  //async signTx(tx, meta) {
-  //  // TODO: create sign msg to replace createSignMessage
-  //  // const signMsg = createSignMsg(tx, meta);
-
-  //  const seq = meta.sequence;
-  //  const acc = meta.account_number;
-  //  const id = meta.chain_id;
-  //  const signMessage = createSignMessage(tx, { seq, acc, id });
-
-  //  // TODO: create signature using ledger
-  //  // const signature = createSignature(signMsg, keyPair);
-  //  // return signature
-  //  return signMessage
-  //}
-
-  //async broadcast(msg) {
-  //  const signer = this._ledger.getSigner();
-  //  return await this.send({ gas: '250000', memo: 'kava test tx' }, msg, signer);
-  //}
-
-  //async send({ gas, gasPrices, memo = undefined }, message, signer) {
-  //  const senderAddress = await this.getAccountAddress();
-  //  return await this._cosmosAPI.send(senderAddress, { gas, gasPrices, memo }, message, signer)
-  //}
-
-  //async simulate({ memo = undefined }, message) {
-  //  const senderAddress = await this.getAccountAddress();
-  //  return await this._cosmosAPI.simulate(senderAddress, { message, memo });
-  //}
-
+    //  checkTx();
+    //});
+  }
 }
