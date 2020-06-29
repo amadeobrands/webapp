@@ -1,53 +1,130 @@
-import Cosmos from "@lunie/cosmos-api"
+import { toCanonicalJSONString, bytesToBase64 } from '@tendermint/belt';
 
 export class CosmosAPI {
-  constructor(url, ledger) {
+  constructor(url, chainID, ledger) {
     this._url = url;
+    this._chainID = chainID;
     this._ledger = ledger;
-    this._cosmosAPI = null;
     return this
   }
 
-  async init() {
+  async getAccountInfo() {
     const address = await this._ledger.getAddress();
-    this._cosmosAPI = new Cosmos(this._url, address);
-    return this._cosmosAPI;
+
+    const accountResponse = await fetch(this._url + '/auth/accounts/' + address);
+    const accountData = await accountResponse.json();
+
+    const accountNumber = accountData.result.value.account_number.toString();
+    const sequence = accountData.result.value.sequence.toString();
+
+    return [address, accountNumber, sequence];
   }
-
-  // -----------------------------------
-  //            HTTP get
-  // -----------------------------------
-
-  async getAccountAddress() {
-    return await this._ledger.getAddress();
-  }
-
-  async getBlock(height) {
-    return await this._cosmosAPI.get.block(height)
-  }
-
-  async getAccount(addr) {
-    return await this._cosmosAPI.get.account(addr)
-  }
-
-  // -----------------------------------
-  //            HTTP post
-  // -----------------------------------
-
-  async broadcast(msg) {
-    const signer = this._ledger.getSigner();
-    const { included } = await msg.send({ gas: 200000 }, signer)
-    return included()
-  }
-
-  // -----------------------------------
-  //               Msgs
-  // -----------------------------------
 
   MsgSend(sender, recipient, denom, amount) {
-    return this._cosmosAPI.MsgSend(sender, {
-      toAddress: recipient,
-      amounts: [{ denom: denom, amount: amount }],
-    })
+    return {
+      type: 'cosmos-sdk/MsgSend',
+      value: {
+        from_address: sender,
+        to_address: recipient,
+        amount: [
+          {
+            denom: denom,
+            amount: amount,
+          },
+        ]
+      },
+    };
+  }
+
+  async signTxForMsg(msg, accountNumber, sequence) {
+    const signTx = {
+      account_number: accountNumber,
+      chain_id: this._chainID,
+      fee: { amount: [], gas: '250000' },
+      memo: '',
+      msgs: [msg],
+      sequence: sequence,
+    }
+
+    const signMsg = toCanonicalJSONString(signTx);
+
+    const pubKey = await this._ledger.getPubKey();
+    const signature = await this._ledger.sign(signMsg);
+
+    return {
+      msg: signTx.msgs,
+      fee: signTx.fee,
+      memo: signTx.memo,
+      signatures: [
+        {
+          signature: bytesToBase64(signature),
+          pub_key: {
+            type: 'tendermint/PubKeySecp256k1',
+            value: bytesToBase64(pubKey)
+          }
+        }
+      ]
+    };
+  }
+
+  async broadcastTx(signedTx) {
+    const response = await fetch(this._url + '/txs', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        tx: signedTx,
+        mode: 'sync'
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('could not broadcast transaction');
+    }
+
+    return response.json();
+  }
+
+  async waitForBlock(txHash, timeout = 60000) {
+    return true;
+    //const beginTime = (new Date()).getTime();
+    //let backoff = 500;
+
+    //return new Promise((resolve, reject) => {
+    //  const checkTx = () => {
+    //    if ((new Date()).getTime() - beginTime > timeout) {
+    //      resolve(false);
+    //      return;
+    //    }
+
+    //    fetch(this._url + '/txs/' + txHash).then(response => {
+    //      // not included yet
+    //      if (!response.ok) {
+    //        backoff = backoff * 2;
+    //        setTimeout(checkTx, backoff);
+    //      }
+
+    //      response.json().then(data => {
+    //        if (data.code) {
+    //          reject(data.raw_log)
+    //          return;
+    //        }
+
+    //        if (data.error) {
+    //          reject(data.raw_log)
+    //          return;
+    //        }
+
+    //        resolve(true);
+    //      })
+    //    }).catch(() => {
+    //      backoff = backoff * 2;
+    //      setTimeout(checkTx, backoff);
+    //    });
+    //  }
+
+    //  checkTx();
+    //});
   }
 }

@@ -9,19 +9,19 @@ export class CosmosLedger {
     return this._ledger.connect();
   }
 
+  reset() {
+    this._ledger.cosmosApp = null;
+  }
+
   async getAddress() {
     return this._ledger.getCosmosAddress();
   }
 
-  getSigner() {
-    return async (signMessage) => {
-      const publicKey = await this._ledger.getPubKey();
-      const signature = await this._ledger.sign(signMessage);
+  async getPubKey() {
+    return this._ledger.getPubKey();
+  }
 
-      return {
-        signature,
-        publicKey
-      }
-    }
+  async sign(signMessage) {
+    return this._ledger.sign(signMessage);
   }
 }

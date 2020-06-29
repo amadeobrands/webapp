@@ -1,75 +1,121 @@
-import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { Box, Button } from '@material-ui/core';
-import { initApiAsync, postMsgAsync, selectIsLoaded, selectIsPosted} from './apiSlice';
+import React, { useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { Box, Button, Typography} from '@material-ui/core';
+import { ToggleButton, ToggleButtonGroup } from '@material-ui/lab/';
+import { TrendingFlat, AttachMoney } from '@material-ui/icons';
+import { idle, txState, selectTxState, selectTxError, selectTxErrorState } from './apiSlice';
+import { Transfer } from './Transfer';
+import { CreateCDP } from './CreateCDP';
 import { Loading } from '../common/Loading';
+
+const txMessage = {
+  [txState.PREPARING]: 'Preparing',
+  [txState.SIGNING]: 'Signing',
+  [txState.BROADCASTING]: 'Broadcasting',
+  [txState.CONFIRMING]: 'Confirming',
+}
+
+function txIsIdle(state) {
+  return state === txState.IDLE;
+}
+
+function txInProgress(state) {
+  return state !== txState.IDLE &&
+    state !== txState.ERRORED &&
+    state !== txState.COMPLETED
+}
+
+function txErrored(state) {
+  return state === txState.ERRORED;
+}
+
+function txCompleted(state) {
+  return state === txState.COMPLETED;
+}
 
 export function APIConnect({ cosmosAPI }) {
   const dispatch = useDispatch();
+  const [view, setView] = useState('transfer');
+  const currentTxState = useSelector(selectTxState);
+  const txError = useSelector(selectTxError);
+  const txErrorState = useSelector(selectTxErrorState);
 
-  const loaded = useSelector(selectIsLoaded);
-  const posted = useSelector(selectIsPosted);
-
-  let [recipient, setRecipient] = useState('');
-  let [denom, setDenom] = useState('');
-  let [amount, setAmount] = useState('');
-
-  useEffect(() => {
-    dispatch(initApiAsync(cosmosAPI));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const handleChange = (event, nextView) => {
+    setView(nextView);
+  };
 
   let component;
-  switch(loaded) {
-    case false:
-      if(!posted) {
-        component = <Loading message="Initializing..."/>
-      } else {
-        component = (
-        <Box paddingTop={1}>
-          <p>Tx sent</p>
-        </Box>
-        )
-      }
-      break;
-    case true:
-      component = (
-        <Box paddingTop='1rem'>
-          <p>Recipient</p>
-          <input
-            value={recipient}
-            onChange={e => setRecipient(e.target.value)}
-          />
-          <p>Denom</p>
-          <input
-            value={denom}
-            onChange={e => setDenom(e.target.value)}
-          />
-          <p>Amount</p>
-          <input
-            value={amount}
-            onChange={e => setAmount(e.target.value)}
-          />
-          <br/>
-          <br/>
-          <Button
-            variant="outlined"
+
+  if (txIsIdle(currentTxState)) {
+    switch(view) {
+      case 'transfer':
+        component = <Transfer cosmosAPI={cosmosAPI} />
+        break;
+      case 'createCDP':
+        component = <CreateCDP cosmosAPI={cosmosAPI} />
+        break;
+      default:
+        break;
+    }
+  } else if (txInProgress(currentTxState)) {
+    component = <Loading message={txMessage[currentTxState] + '...'} />
+  } else if (txErrored(currentTxState)) {
+    component = (
+      <Box paddingTop={1}>
+        <Typography variant="h4" color="error">
+          Error while { txErrorState }
+        </Typography>
+        <Typography variant="h5" component="p" color="error">
+          { txError }
+        </Typography>
+        <Box width="227px" margin="auto" paddingTop={1}>
+        <Button
+            variant="contained"
             color="secondary"
             size="large"
-            onClick={() => dispatch(postMsgAsync(cosmosAPI, recipient, denom, amount))}>
-              Send
+            fullWidth={true}
+            onClick={() => dispatch(idle())}
+          >
+            Back
           </Button>
         </Box>
-      )
-      break;
-    default:
-      break;
-    }
-
-    // Render
-    return (
-      <Box>
-        {component}
       </Box>
     )
+  } else if (txCompleted(currentTxState)) {
+    component = (
+      <Box paddingTop={1}>
+        <Typography variant="h5" component="p" color="secondary">
+          Transaction Confirmed!
+        </Typography>
+      <Box width="227px" margin="auto" paddingTop={1}>
+        <Button
+            variant="contained"
+            color="secondary"
+            size="large"
+            fullWidth={true}
+            onClick={() => dispatch(idle())}
+          >
+          Back
+        </Button>
+      </Box>
+      </Box>
+    )
+  }
+
+  return (
+    <Box>
+      { txIsIdle(currentTxState) &&
+        <ToggleButtonGroup orientation="horizontal" value={view} exclusive onChange={handleChange}>
+        <ToggleButton value="transfer" aria-label="transfer">
+          <TrendingFlat />
+        </ToggleButton>
+        <ToggleButton value="createCDP" aria-label="createCDP">
+          <AttachMoney />
+        </ToggleButton>
+        </ToggleButtonGroup>
+      }
+      {component}
+    </Box>
+  )
 }
+

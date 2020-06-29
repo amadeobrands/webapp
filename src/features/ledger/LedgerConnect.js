@@ -8,8 +8,8 @@ export function LedgerConnect({ ledger, errorMessage }) {
 
   return (
     <Box>
-      <Box paddingTop={1}>
-        <Button variant="outlined" color="secondary" size="large" onClick={() => dispatch(connectAsync(ledger))}>Connect Ledger</Button>
+      <Box margin="auto" paddingTop={1.5} width="227px">
+        <Button fullWidth={true} variant="contained" color="secondary" size="large" onClick={() => dispatch(connectAsync(ledger))}>Connect Ledger</Button>
       </Box>
       { errorMessage &&
         <Box paddingTop={1}>

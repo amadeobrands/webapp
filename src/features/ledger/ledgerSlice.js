@@ -34,9 +34,18 @@ export const { connecting, connected, failed } = ledgerSlice.actions;
 export const connectAsync = ledger => async dispatch => {
   dispatch(connecting());
   try {
-    await ledger.connect()
+    await ledger.connect();
     dispatch(connected());
   } catch (e) {
+    // reset ledger on failure
+    //
+    // if the ledger failed to connect previously due to app not being open,
+    // connect will succeed a second time, allowing user to continue without
+    // cosmos app
+    //
+    // see https://github.com/luniehq/cosmos-ledger/blob/develop/src/cosmos-ledger.ts#L137
+    // where cosmos app is set before checking app open
+    ledger.reset();
     dispatch(failed(e.toString()));
   }
 }

@@ -6,11 +6,20 @@
  */
 
 let cosmosURL;
+let chainID;
 
 if (process.env.REACT_APP_COSMOS_URL) {
   cosmosURL = process.env.REACT_APP_COSMOS_URL;
 } else {
-  cosmosURL = 'http://127.0.0.1:1317';
+  cosmosURL = 'http://35.193.236.181';
 }
 
 export const COSMOS_URL = cosmosURL;
+
+if (process.env.REACT_APP_CHAIN_ID) {
+  chainID = process.env.REACT_APP_CHAIN_ID;
+} else {
+  chainID = 'testing';
+}
+
+export const CHAIN_ID = chainID;

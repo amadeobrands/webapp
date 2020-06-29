@@ -9,10 +9,10 @@ import { Loading } from './features/common/Loading';
 import { CosmosAPI } from './features/api/CosmosAPI';
 import { APIConnect } from './features/api/APIConnect';
 import logo from './logo.svg';
-import { COSMOS_URL } from './config';
+import { COSMOS_URL, CHAIN_ID } from './config';
 
 const ledger = new CosmosLedger();
-const cosmosAPI = new CosmosAPI(COSMOS_URL, ledger);
+const cosmosAPI = new CosmosAPI(COSMOS_URL, CHAIN_ID, ledger);
 
 const useStyles = makeStyles({
   root: {
