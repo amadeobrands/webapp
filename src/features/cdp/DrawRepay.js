@@ -11,6 +11,12 @@ import { setAddressAsync, setBalancesAsync, setCdpAsync, setPriceAsync,
     selectAddress, selectBalances, selectCdp, selectPrice } from './cdpSlice';
 
 // ------------------------------------------
+//                 Constants
+// ------------------------------------------
+const BNB_CONVERSION_FACTOR = 10 ** 8;
+const USDX_CONVERSION_FACTOR = 10 ** 6;
+
+// ------------------------------------------
 //            DrawRepay Component
 // ------------------------------------------
 
@@ -18,26 +24,29 @@ export function DrawRepay({ cosmosAPI }) {
     const dispatch = useDispatch();
 
     // State
+    let [collateralDenom] = useState('bnb');
     let [debtDenom] = useState('usdx');
+    let [debtPrice] = useState(1);
 
     // Selectors
     let address = useSelector(selectAddress);
     let balances = useSelector(selectBalances);
     let cdp = useSelector(selectCdp);
-    // let price = useSelector(selectPrice);
-    let price = 1;
+    let price = useSelector(selectPrice);
 
     // Effects
     useEffect(() => {
         dispatch(setAddressAsync(cosmosAPI));
-        dispatch(setPriceAsync(cosmosAPI, debtDenom));
+        dispatch(setPriceAsync(cosmosAPI, collateralDenom));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
         if(address) {
             dispatch(setBalancesAsync(cosmosAPI, address));
-            // dispatch(setCdpAsync(cosmosAPI, address, collateralDenom)); // TODO: use me
+            if(price) {
+                dispatch(setCdpAsync(cosmosAPI, address, collateralDenom));
+            }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [address]);
@@ -49,6 +58,20 @@ export function DrawRepay({ cosmosAPI }) {
         balance = coin ? coin.amount : 0;
     }
 
+    let outstandingDebt = 0;
+    let canGenerateUsdValue = 0;
+    if(cdp && cdp.cdp) {
+        outstandingDebt = Number(cdp.cdp.principal.amount)/USDX_CONVERSION_FACTOR;
+
+        // collateral = 10
+        // principal = 1
+        // how much can I draw? -> up to 7.5
+
+        const collateralAmount = Number(cdp.cdp.collateral.amount)/BNB_CONVERSION_FACTOR;
+        const canGenerateCollateral = Number(collateralAmount / 1.5);
+        canGenerateUsdValue = canGenerateCollateral * price;
+    }
+
     // Render
     return (
         <Box display="flex" flexDirection="column" border={1} borderRadius={5} borderColor={"#D3D3D3"}>
@@ -56,16 +79,16 @@ export function DrawRepay({ cosmosAPI }) {
                 rowText={["Outstanding", debtDenom.toUpperCase(), "debt"].join(" ")}
                 buttonText={"Pay back"}
                 denom={debtDenom}
-                amount={"25.00"}
-                price={price}
+                amount={outstandingDebt}
+                price={debtPrice}
             />
             <Divider/>
             <RowButton
                 rowText="Available to generate"
                 buttonText="Generate"
                 denom={debtDenom}
-                amount={"12.44"}
-                price={price}
+                amount={canGenerateUsdValue}
+                price={debtPrice}
             />
         </Box>
     )
