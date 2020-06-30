@@ -1,13 +1,20 @@
+// General imports
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+
+// Third library imports
 import { Box, Button, Typography} from '@material-ui/core';
 import { ToggleButton, ToggleButtonGroup } from '@material-ui/lab/';
-import { AccountBalance, TrendingFlat, AttachMoney } from '@material-ui/icons';
+import { AccountBalance, TrendingFlat, AttachMoney, SyncAlt } from '@material-ui/icons';
+
+// Local imports
 import { idle, txState, selectTxState, selectTxError, selectTxErrorState } from './apiSlice';
-import { Transfer } from './Transfer';
-import { CreateCDP } from './CreateCDP';
 import { Loading } from '../common/Loading';
 import { Wallet } from '../wallet/Wallet';
+import { DepositWithdraw } from '../cdp/DepositWithdraw';
+import { DrawRepay } from '../cdp/DrawRepay';
+// import { Transfer } from './Transfer';
+import { CreateCDP } from './CreateCDP';
 
 const txMessage = {
   [txState.PREPARING]: 'Preparing',
@@ -53,10 +60,13 @@ export function APIConnect({ cosmosAPI }) {
         component = <Wallet cosmosAPI={cosmosAPI} />
         break
       case 'transfer':
-        component = <Transfer cosmosAPI={cosmosAPI} />
-        break;
-      case 'createCDP':
         component = <CreateCDP cosmosAPI={cosmosAPI} />
+        break;
+      case 'depositwithdraw':
+        component = <DepositWithdraw cosmosAPI={cosmosAPI} />
+        break;
+      case 'drawrepay':
+        component = <DrawRepay cosmosAPI={cosmosAPI} />
         break;
       default:
         break;
@@ -116,8 +126,11 @@ export function APIConnect({ cosmosAPI }) {
           <ToggleButton value="transfer" aria-label="transfer">
             <TrendingFlat />
           </ToggleButton>
-          <ToggleButton value="createCDP" aria-label="createCDP">
+          <ToggleButton value="depositwithdraw" aria-label="depositwithdraw">
             <AttachMoney />
+          </ToggleButton>
+          <ToggleButton value="drawrepay" aria-label="drawrepay">
+            <SyncAlt />
           </ToggleButton>
         </ToggleButtonGroup>
       }
