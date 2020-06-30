@@ -16,7 +16,7 @@ export const cdpSlice = createSlice({
   initialState: {
     address: '',
     balances: [],
-    cdp: '',
+    cdp: {},
     price: '',
   },
   reducers: {
@@ -69,9 +69,8 @@ export const setCdpAsync = (cosmosAPI, address, denom) => async dispatch => {
     const response = await fetch(cosmosAPI.getUrl() + "/cdp/cdps/cdp/" + address + "/" + denom)
     const data = await response.json()
     if(data.result) {
-        const cdp = data.result.value;
-        console.log("cdp:", cdp); // TODO: remove this
-        dispatch(setCdp(cdp));
+        console.log(data.result)
+        dispatch(setCdp(data.result));
     }
 }
 

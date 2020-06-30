@@ -11,6 +11,12 @@ import { setAddressAsync, setBalancesAsync, setCdpAsync, setPriceAsync,
     selectAddress, selectBalances, selectCdp, selectPrice } from './cdpSlice';
 
 // ------------------------------------------
+//                 Constants
+// ------------------------------------------
+const BNB_CONVERSION_FACTOR = 10 ** 8;
+const USDX_CONVERSION_FACTOR = 10 ** 6;
+
+// ------------------------------------------
 //          DepositWithdraw Component
 // ------------------------------------------
 
@@ -23,7 +29,7 @@ export function DepositWithdraw({ cosmosAPI }) {
     // Selectors
     let address = useSelector(selectAddress);
     let balances = useSelector(selectBalances);
-    // let cdp = useSelector(selectCdp);
+    let cdp = useSelector(selectCdp);
     let price = useSelector(selectPrice);
 
     // Effects
@@ -36,7 +42,9 @@ export function DepositWithdraw({ cosmosAPI }) {
     useEffect(() => {
         if(address) {
             dispatch(setBalancesAsync(cosmosAPI, address));
-            // dispatch(setCdpAsync(cosmosAPI, address, collateralDenom)); // TODO: use me
+            if(price) {
+                dispatch(setCdpAsync(cosmosAPI, address, collateralDenom));
+            }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [address]);
@@ -49,6 +57,20 @@ export function DepositWithdraw({ cosmosAPI }) {
         balance = coin ? coin.amount : 0;
     }
 
+    // Get locked collateral amount and withdrawable amount
+    let lockedCollateralAmount = 0;
+    let withdrawableAmount = 0;
+    if(cdp && cdp.cdp) {
+        lockedCollateralAmount = Number(cdp.cdp.collateral.amount)/BNB_CONVERSION_FACTOR;
+
+        // Calculate withdrawal amount of collateral without crossing 150% liquidation threshold
+        const usdxAmount = Number(cdp.cdp.principal.amount)/USDX_CONVERSION_FACTOR;
+        const requiredCollateralUsdValue = Number(usdxAmount * 1.5);
+        const collateralUsdValue = Number(cdp.collateral_value.amount)/USDX_CONVERSION_FACTOR;
+        const withdrawableAmountUsdValue = Number(collateralUsdValue) - Number(requiredCollateralUsdValue);
+        withdrawableAmount = withdrawableAmountUsdValue / price;
+    }
+
     // Render
     return (
         <Box display="flex" flexDirection="column" border={1} borderRadius={5} borderColor={"#D3D3D3"}>
@@ -56,7 +78,7 @@ export function DepositWithdraw({ cosmosAPI }) {
                 rowText={collateralDenom.toUpperCase() + " Locked"}
                 buttonText={"Deposit"}
                 denom={collateralDenom}
-                amount={"40.52"}
+                amount={lockedCollateralAmount}
                 price={price}
             />
             <Divider/>
@@ -64,7 +86,7 @@ export function DepositWithdraw({ cosmosAPI }) {
                 rowText="Able to withdraw"
                 buttonText="Withdraw"
                 denom={collateralDenom}
-                amount={balance}
+                amount={withdrawableAmount}
                 price={price}
             />
         </Box>
