@@ -106,7 +106,9 @@ export function Wallet({ cosmosAPI }) {
     }, []);
 
     useEffect(() => {
-        dispatch(setBalancesAsync(cosmosAPI, address));
+        if(address) {
+            dispatch(setBalancesAsync(cosmosAPI, address));
+        }
         dispatch(setPriceAsync(cosmosAPI, collateralDenom));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [address]);
@@ -127,16 +129,13 @@ export function Wallet({ cosmosAPI }) {
         <Box paddingTop='1rem'>
             <Box border={1} borderRadius={5} borderColor={"#D3D3D3"}>
                 <Box display="flex" flexDirection="horizontal" width={400} height={30}
-                    justifyContent="space-between" alignItems="center"
-                    borderBottom={1} borderBottomStyle={{color: "#D3D3D3"}}>
+                    justifyContent="space-between" alignItems="center" borderBottom={1}>
                     <Box display="flex" flexDirection="horizontal" alignItems="center">
                         <FiberManualRecordIcon className={classes.ledgerIcon}/>
                         <p> Ledger </p>
                     </Box>
                     <Box paddingRight={1.5} paddingLeft={0}>
-                        <p>
-                            {address ? displayAddr : null}    
-                        </p> 
+                        <p> {address ? displayAddr : null} </p> 
                     </Box>
                 </Box>
                 <Box>
@@ -155,21 +154,21 @@ export function Wallet({ cosmosAPI }) {
                             </TableHead>
                             <TableBody>
                             {rows.map((row) => (
-                                <StyledTableRow key={row.name} alignItems="center">
+                                <StyledTableRow key={row.assetDenom}>
                                     <StyledTableCell align="right">{row.assetDenom}</StyledTableCell>
                                     <StyledTableCell align="right">{row.balance}</StyledTableCell>
                                     <StyledTableCell align="right">{row.usdValue}</StyledTableCell>
                                     {row.assetDenom !== principalDenom.toUpperCase() ?
-                                        (<Box marginTop={0.5}>
+                                        (<StyledTableCell align="right">
                                             <Button
                                                 variant="outlined"
                                                 color="primary"
                                                 size="small"
                                                 fullWidth={false}
-                                                onClick={() => console.log("Load clicked!")}>
+                                                onClick={() => console.log("Load " + row.assetDenom + " clicked!")}>
                                                 Load
                                             </Button>
-                                        </Box>)
+                                        </StyledTableCell>)
                                         :
                                         (<StyledTableCell/>)
                                     }
