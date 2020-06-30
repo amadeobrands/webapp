@@ -69,7 +69,6 @@ export const setCdpAsync = (cosmosAPI, address, denom) => async dispatch => {
     const response = await fetch(cosmosAPI.getUrl() + "/cdp/cdps/cdp/" + address + "/" + denom)
     const data = await response.json()
     if(data.result) {
-        console.log(data.result)
         dispatch(setCdp(data.result));
     }
 }
