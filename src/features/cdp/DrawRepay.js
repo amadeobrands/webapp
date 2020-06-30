@@ -63,10 +63,6 @@ export function DrawRepay({ cosmosAPI }) {
     if(cdp && cdp.cdp) {
         outstandingDebt = Number(cdp.cdp.principal.amount)/USDX_CONVERSION_FACTOR;
 
-        // collateral = 10
-        // principal = 1
-        // how much can I draw? -> up to 7.5
-
         const collateralAmount = Number(cdp.cdp.collateral.amount)/BNB_CONVERSION_FACTOR;
         const canGenerateCollateral = Number(collateralAmount / 1.5);
         canGenerateUsdValue = canGenerateCollateral * price;
