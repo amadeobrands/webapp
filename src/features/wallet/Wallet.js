@@ -91,8 +91,8 @@ export function Wallet({ cosmosAPI }) {
     const dispatch = useDispatch();
 
     // State
-    let [collateralDenom, setCollateralDenom] = useState('bnb');
-    let [principalDenom, setPrincipalDenom] = useState('usdx');
+    let [collateralDenom] = useState('bnb');
+    let [principalDenom] = useState('usdx');
 
     // Selectors
     let balances = useSelector(selectBalances);

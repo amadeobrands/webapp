@@ -62,8 +62,8 @@ export const { idle, preparing, signing, broadcasting, confirming, errored, comp
 export const postTxAsync = (cosmosAPI, msg) => async dispatch => {
   try {
     dispatch(preparing());
-    const [address, accountNumber, sequence] = await cosmosAPI.getAccountInfo();
-    
+    const [accountNumber, sequence] = await cosmosAPI.prepareSignInfo();
+
     dispatch(signing());
     const signedTx = await cosmosAPI.signTxForMsg(msg, accountNumber, sequence);
 

@@ -16,7 +16,7 @@ export class CosmosAPI {
     return await this._ledger.getAddress();
   }
 
-  async getAccountInfo() {
+  async prepareSignInfo() {
     const address = await this._ledger.getAddress();
 
     const accountResponse = await fetch(this._url + '/auth/accounts/' + address);
@@ -25,7 +25,7 @@ export class CosmosAPI {
     const accountNumber = accountData.result.value.account_number.toString();
     const sequence = accountData.result.value.sequence.toString();
 
-    return [address, accountNumber, sequence];
+    return [accountNumber, sequence];
   }
 
   async signTxForMsg(msg, accountNumber, sequence) {

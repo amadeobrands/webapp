@@ -6,7 +6,6 @@ export const walletSlice = createSlice({
     address: '',
     price: '',
     collateralizationRatio: '',
-    address: '',
     balances: [],
   },
   reducers: {
@@ -18,9 +17,6 @@ export const walletSlice = createSlice({
     },
     setCollateralizationRatio: (state, action) => {
         state.collateralizationRatio = action.payload;
-    },
-    setAddress: (state, action) => {
-        state.address = action.payload;
     },
     setBalances: (state, action) => {
         state.balances = action.payload;
