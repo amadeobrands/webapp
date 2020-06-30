@@ -32,7 +32,7 @@ export class CosmosAPI {
     const signTx = {
       account_number: accountNumber,
       chain_id: this._chainID,
-      fee: { amount: [], gas: '250000' },
+      fee: { amount: [], gas: '400000' },
       memo: '',
       msgs: [msg],
       sequence: sequence,

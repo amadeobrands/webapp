@@ -5,7 +5,7 @@ import { useSelector, useDispatch } from 'react-redux';
 // Third library imports
 import { Box, Button, Typography} from '@material-ui/core';
 import { ToggleButton, ToggleButtonGroup } from '@material-ui/lab/';
-import { AccountBalance, TrendingFlat, AttachMoney, SyncAlt } from '@material-ui/icons';
+import { AccountBalance, Add, AttachMoney, SyncAlt } from '@material-ui/icons';
 
 // Local imports
 import { idle, txState, selectTxState, selectTxError, selectTxErrorState } from './apiSlice';
@@ -59,7 +59,7 @@ export function APIConnect({ cosmosAPI }) {
       case 'wallet':
         component = <Wallet cosmosAPI={cosmosAPI} />
         break
-      case 'transfer':
+      case 'createcdp':
         component = <CreateCDP cosmosAPI={cosmosAPI} />
         break;
       case 'depositwithdraw':
@@ -123,8 +123,8 @@ export function APIConnect({ cosmosAPI }) {
           <ToggleButton value="wallet" aria-label="wallet">
             <AccountBalance />
           </ToggleButton>
-          <ToggleButton value="transfer" aria-label="transfer">
-            <TrendingFlat />
+          <ToggleButton value="createcdp" aria-label="createcdp">
+            <Add />
           </ToggleButton>
           <ToggleButton value="depositwithdraw" aria-label="depositwithdraw">
             <AttachMoney />
