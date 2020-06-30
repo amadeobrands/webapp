@@ -10,6 +10,11 @@ import { setAddressAsync, setBalancesAsync, setPriceAsync,
     selectAddress, selectBalances, selectPrice } from './walletSlice';
 
 // ------------------------------------------
+//                 Constants
+// ------------------------------------------
+const USDX_CONVERSION_FACTOR = 10 ** 6;
+
+// ------------------------------------------
 //                   Styles
 // ------------------------------------------
 
@@ -69,7 +74,11 @@ function createData(assetDenom, balances, price) {
     if(!coin) {
         balance = 0;
     } else {
-        balance = coin.amount;
+        if(assetDenom === "USDX" || assetDenom === "usdx") {
+            balance = (Number(coin.amount) / USDX_CONVERSION_FACTOR)
+        } else {
+            balance = coin.amount;
+        }    
     }
 
     const usdValue = usdFormatter.format(balance * price)
