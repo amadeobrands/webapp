@@ -8,7 +8,7 @@ import { Box, Divider } from '@material-ui/core';
 // Local imports
 import { RowButton } from './RowButton';
 import { setAddressAsync, setBalancesAsync, setCdpAsync, setPriceAsync,
-    selectAddress, selectBalances, selectCdp, selectPrice } from './cdpSlice';
+    selectAddress, selectCdp, selectPrice } from './cdpSlice';
 
 // ------------------------------------------
 //                 Constants
@@ -30,7 +30,6 @@ export function DrawRepay({ cosmosAPI }) {
 
     // Selectors
     let address = useSelector(selectAddress);
-    let balances = useSelector(selectBalances);
     let cdp = useSelector(selectCdp);
     let price = useSelector(selectPrice);
 
@@ -52,11 +51,11 @@ export function DrawRepay({ cosmosAPI }) {
     }, [address]);
 
     // Get user's balance of debt coin // TODO: this will be used by the modal
-    let balance
-    if(balances) {
-        const coin  = balances.find(coin => coin.denom === debtDenom);
-        balance = coin ? coin.amount : 0;
-    }
+    // let balance
+    // if(balances) {
+    //     const coin  = balances.find(coin => coin.denom === debtDenom);
+    //     balance = coin ? coin.amount : 0;
+    // }
 
     let outstandingDebt = 0;
     let canGenerateUsdValue = 0;

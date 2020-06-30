@@ -8,7 +8,7 @@ import { Box, Divider } from '@material-ui/core';
 // Local imports
 import { RowButton } from './RowButton';
 import { setAddressAsync, setBalancesAsync, setCdpAsync, setPriceAsync,
-    selectAddress, selectBalances, selectCdp, selectPrice } from './cdpSlice';
+    selectAddress, selectCdp, selectPrice } from './cdpSlice';
 
 // ------------------------------------------
 //                 Constants
@@ -28,7 +28,6 @@ export function DepositWithdraw({ cosmosAPI }) {
 
     // Selectors
     let address = useSelector(selectAddress);
-    let balances = useSelector(selectBalances);
     let cdp = useSelector(selectCdp);
     let price = useSelector(selectPrice);
 
@@ -51,11 +50,11 @@ export function DepositWithdraw({ cosmosAPI }) {
 
     // Setup
     // Get user's balance of collateral coin
-    let balance
-    if(balances) {
-        const coin  = balances.find(coin => coin.denom === collateralDenom);
-        balance = coin ? coin.amount : 0;
-    }
+    // let balance
+    // if(balances) {
+    //     const coin  = balances.find(coin => coin.denom === collateralDenom);
+    //     balance = coin ? coin.amount : 0;
+    // }
 
     // Get locked collateral amount and withdrawable amount
     let lockedCollateralAmount = 0;
