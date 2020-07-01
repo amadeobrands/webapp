@@ -1,18 +1,18 @@
 // General imports
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 
 // Third library imports
 import { Box, Button, Typography} from '@material-ui/core';
 import { ToggleButton, ToggleButtonGroup } from '@material-ui/lab/';
-import { AccountBalance, Add, AttachMoney, SyncAlt } from '@material-ui/icons';
+import { AccountBalance, Add, AttachMoney } from '@material-ui/icons';
 
 // Local imports
-import { idle, txState, selectTxState, selectTxError, selectTxErrorState } from './apiSlice';
+import { idle, txState, selectTxState, selectTxError, selectTxErrorState,
+  setAddressAsync, setBalancesAsync, selectAddress, selectBalances } from './apiSlice';
 import { Loading } from '../common/Loading';
 import { Wallet } from '../wallet/Wallet';
-import { DepositWithdraw } from '../cdp/DepositWithdraw';
-import { DrawRepay } from '../cdp/DrawRepay';
+import { Cdp } from '../cdp/Cdp';
 // import { Transfer } from './Transfer';
 import { CreateCDP } from './CreateCDP';
 
@@ -43,7 +43,23 @@ function txCompleted(state) {
 
 export function APIConnect({ cosmosAPI }) {
   const dispatch = useDispatch();
-  const [view, setView] = useState('wallet');
+  const [view, setView] = useState('cdp');
+
+  let address = useSelector(selectAddress);
+  let balances = useSelector(selectBalances);
+
+  useEffect(() => {
+    dispatch(setAddressAsync(cosmosAPI));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if(address) {
+        dispatch(setBalancesAsync(cosmosAPI, address));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [address]);
+
   const currentTxState = useSelector(selectTxState);
   const txError = useSelector(selectTxError);
   const txErrorState = useSelector(selectTxErrorState);
@@ -62,11 +78,8 @@ export function APIConnect({ cosmosAPI }) {
       case 'createcdp':
         component = <CreateCDP cosmosAPI={cosmosAPI} />
         break;
-      case 'depositwithdraw':
-        component = <DepositWithdraw cosmosAPI={cosmosAPI} />
-        break;
-      case 'drawrepay':
-        component = <DrawRepay cosmosAPI={cosmosAPI} />
+      case 'cdp':
+        component = <Cdp cosmosAPI={cosmosAPI} address={address} balances={balances}/>
         break;
       default:
         break;
@@ -126,11 +139,8 @@ export function APIConnect({ cosmosAPI }) {
           <ToggleButton value="createcdp" aria-label="createcdp">
             <Add />
           </ToggleButton>
-          <ToggleButton value="depositwithdraw" aria-label="depositwithdraw">
+          <ToggleButton value="cdp" aria-label="cdp">
             <AttachMoney />
-          </ToggleButton>
-          <ToggleButton value="drawrepay" aria-label="drawrepay">
-            <SyncAlt />
           </ToggleButton>
         </ToggleButtonGroup>
       }

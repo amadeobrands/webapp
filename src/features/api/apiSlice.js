@@ -14,11 +14,19 @@ export const txState = {
 export const apiSlice = createSlice({
   name: 'api',
   initialState: {
+    address: '',
+    balances: [],
     txState: txState.IDLE,
     txError: '',
     txErrorState: null,
   },
   reducers: {
+    setAddress: (state, action) => {
+      state.address = action.payload;
+    },
+    setBalances: (state, action) => {
+      state.balances = action.payload;
+    },
     idle: state => {
       state.txState = txState.IDLE;
       state.txError = '';
@@ -57,7 +65,20 @@ export const apiSlice = createSlice({
   }
 });
 
-export const { idle, preparing, signing, broadcasting, confirming, errored, completed } = apiSlice.actions;
+export const { idle, preparing, signing, broadcasting, confirming,
+  errored, completed, setAddress, setBalances } = apiSlice.actions;
+
+export const setAddressAsync = (cosmosAPI) => async dispatch => {
+  const address = await cosmosAPI.getWalletAddress();
+  dispatch(setAddress(address));
+}
+
+export const setBalancesAsync = (cosmosAPI, address) => async dispatch => {
+  const response = await fetch(cosmosAPI.getUrl() + "/auth/accounts/" + address)
+  const data = await response.json()
+  const coins = data.result.value.coins;
+  dispatch(setBalances(coins));
+}
 
 export const postTxAsync = (cosmosAPI, msg) => async dispatch => {
   try {
@@ -192,6 +213,8 @@ export const postMsgRefundSwap = (cosmosAPI, swapID) => async dispatch => {
   return dispatch(postTxAsync(cosmosAPI, msg));
 }
 
+export const selectAddress = state => state.api.address;
+export const selectBalances = state => state.api.balances;
 export const selectTxState = state => state.api.txState;
 export const selectTxError = state => state.api.txError;
 export const selectTxErrorState = state => state.api.txErrorState;

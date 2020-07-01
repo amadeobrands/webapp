@@ -1,14 +1,11 @@
 // General imports
-import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import React, { useState } from 'react';
 
 // Third party library imports
-import { Box, Divider } from '@material-ui/core';
+import { Box, Divider, Typography } from '@material-ui/core';
 
 // Local imports
 import { RowButton } from './RowButton';
-import { setAddressAsync, setBalancesAsync, setCdpAsync, setPriceAsync,
-    selectAddress, selectCdp, selectPrice } from './cdpSlice';
 
 // ------------------------------------------
 //                 Constants
@@ -20,42 +17,10 @@ const USDX_CONVERSION_FACTOR = 10 ** 6;
 //            DrawRepay Component
 // ------------------------------------------
 
-export function DrawRepay({ cosmosAPI }) {
-    const dispatch = useDispatch();
-
-    // State
-    let [collateralDenom] = useState('bnb');
-    let [debtDenom] = useState('usdx');
+export function DrawRepay({debtDenom, cdp, price }) {
     let [debtPrice] = useState(1);
-
-    // Selectors
-    let address = useSelector(selectAddress);
-    let cdp = useSelector(selectCdp);
-    let price = useSelector(selectPrice);
-
-    // Effects
-    useEffect(() => {
-        dispatch(setAddressAsync(cosmosAPI));
-        dispatch(setPriceAsync(cosmosAPI, collateralDenom));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    useEffect(() => {
-        if(address) {
-            dispatch(setBalancesAsync(cosmosAPI, address));
-            if(price) {
-                dispatch(setCdpAsync(cosmosAPI, address, collateralDenom));
-            }
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [address]);
-
-    // Get user's balance of debt coin // TODO: this will be used by the modal
-    // let balance
-    // if(balances) {
-    //     const coin  = balances.find(coin => coin.denom === debtDenom);
-    //     balance = coin ? coin.amount : 0;
-    // }
+  
+    const titleText = ["Outstanding", debtDenom.toUpperCase(), "debt"].join(" ")
 
     let outstandingDebt = 0;
     let canGenerateUsdValue = 0;
@@ -69,22 +34,29 @@ export function DrawRepay({ cosmosAPI }) {
 
     // Render
     return (
-        <Box display="flex" flexDirection="column" border={1} borderRadius={5} borderColor={"#D3D3D3"}>
-            <RowButton
-                rowText={["Outstanding", debtDenom.toUpperCase(), "debt"].join(" ")}
-                buttonText={"Pay back"}
-                denom={debtDenom}
-                amount={outstandingDebt}
-                price={debtPrice}
-            />
-            <Divider/>
-            <RowButton
-                rowText="Available to generate"
-                buttonText="Generate"
-                denom={debtDenom}
-                amount={canGenerateUsdValue}
-                price={debtPrice}
-            />
+        <Box display="flex" flexDirection="column" >
+            <Box marginTop={1} marginBottom={1}>
+                <Typography variant="h5" align={"left"}>
+                    {titleText}
+                </Typography>
+            </Box>
+            <Box display="flex" flexDirection="column" border={1} borderRadius={5} borderColor={"#D3D3D3"}>
+                <RowButton
+                    rowText={["Outstanding", debtDenom.toUpperCase(), "debt"].join(" ")}
+                    buttonText={"Pay back"}
+                    denom={debtDenom}
+                    amount={outstandingDebt}
+                    price={debtPrice}
+                />
+                <Divider/>
+                <RowButton
+                    rowText="Available to generate"
+                    buttonText="Generate"
+                    denom={debtDenom}
+                    amount={canGenerateUsdValue}
+                    price={debtPrice}
+                />
+            </Box>
         </Box>
     )
 }

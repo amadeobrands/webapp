@@ -40,7 +40,7 @@ function App() {
   switch(connectionState) {
     case status.CONNECTED:
       component = (
-        <Box paddingTop={1}>
+        <Box>
           <APIConnect cosmosAPI={cosmosAPI}/>
         </Box>
       )
@@ -67,8 +67,10 @@ function App() {
 
   return (
       <Container className={classes.root}>
-        <Box>
+        <Box marginBottom={5}>
           <img src={logo} className={classes.logo} alt="logo" />
+        </Box>
+        <Box>
           { component }
         </Box>
       </Container>
