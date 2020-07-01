@@ -91,7 +91,7 @@ export const postTxAsync = (cosmosAPI, msg) => async dispatch => {
       dispatch(errored('Timeout while waiting for transaction to be included in block'));
     }
   } catch(e) {
-    dispatch(errored(e));
+    dispatch(errored(e.toString()));
     return;
   }
 }
