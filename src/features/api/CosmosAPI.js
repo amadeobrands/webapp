@@ -8,7 +8,15 @@ export class CosmosAPI {
     return this
   }
 
-  async getAccountInfo() {
+  getUrl() {
+    return this._url;
+  }
+
+  async getWalletAddress() {
+    return await this._ledger.getAddress();
+  }
+
+  async prepareSignInfo() {
     const address = await this._ledger.getAddress();
 
     const accountResponse = await fetch(this._url + '/auth/accounts/' + address);
@@ -17,30 +25,14 @@ export class CosmosAPI {
     const accountNumber = accountData.result.value.account_number.toString();
     const sequence = accountData.result.value.sequence.toString();
 
-    return [address, accountNumber, sequence];
-  }
-
-  MsgSend(sender, recipient, denom, amount) {
-    return {
-      type: 'cosmos-sdk/MsgSend',
-      value: {
-        from_address: sender,
-        to_address: recipient,
-        amount: [
-          {
-            denom: denom,
-            amount: amount,
-          },
-        ]
-      },
-    };
+    return [accountNumber, sequence];
   }
 
   async signTxForMsg(msg, accountNumber, sequence) {
     const signTx = {
       account_number: accountNumber,
       chain_id: this._chainID,
-      fee: { amount: [], gas: '250000' },
+      fee: { amount: [], gas: '400000' },
       memo: '',
       msgs: [msg],
       sequence: sequence,
@@ -75,7 +67,7 @@ export class CosmosAPI {
       },
       body: JSON.stringify({
         tx: signedTx,
-        mode: 'sync'
+        mode: 'async'
       })
     });
 
@@ -87,44 +79,54 @@ export class CosmosAPI {
   }
 
   async waitForBlock(txHash, timeout = 60000) {
-    return true;
-    //const beginTime = (new Date()).getTime();
-    //let backoff = 500;
+    const beginTime = (new Date()).getTime();
+    let backoff = 500;
 
-    //return new Promise((resolve, reject) => {
-    //  const checkTx = () => {
-    //    if ((new Date()).getTime() - beginTime > timeout) {
-    //      resolve(false);
-    //      return;
-    //    }
+    return new Promise((resolve, reject) => {
+     const checkTx = async() => {
+       // check elapsed time against timeout
+       if ((new Date()).getTime() - beginTime > timeout) {
+         resolve(false);
+         return;
+       }
 
-    //    fetch(this._url + '/txs/' + txHash).then(response => {
-    //      // not included yet
-    //      if (!response.ok) {
-    //        backoff = backoff * 2;
-    //        setTimeout(checkTx, backoff);
-    //      }
+       // wait before attempting to fetch tx
+       await this.sleep(backoff);
 
-    //      response.json().then(data => {
-    //        if (data.code) {
-    //          reject(data.raw_log)
-    //          return;
-    //        }
+       fetch(this._url + '/txs/' + txHash).then(response => {
+        // not included yet
+         if (!response.ok) {
+           backoff = backoff * 2;
+           checkTx();
+         }
+         
+         if(response.ok) {
+          response.json().then(data => {
+            // internal chain error
+            if (data.code) {
+              reject(data.raw_log)
+              return;
+            }
 
-    //        if (data.error) {
-    //          reject(data.raw_log)
-    //          return;
-    //        }
+           // http error
+           if (data.error) {
+            reject(data.raw_log)
+            return;
+           }
 
-    //        resolve(true);
-    //      })
-    //    }).catch(() => {
-    //      backoff = backoff * 2;
-    //      setTimeout(checkTx, backoff);
-    //    });
-    //  }
-
-    //  checkTx();
-    //});
+           resolve(true);
+           return;
+          });
+        }
+      });
+     }
+    checkTx();
+   })
   }
+
+  // Sleep is a wait function
+  sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
 }

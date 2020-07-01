@@ -1,12 +1,20 @@
+// General imports
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+
+// Third library imports
 import { Box, Button, Typography} from '@material-ui/core';
 import { ToggleButton, ToggleButtonGroup } from '@material-ui/lab/';
-import { TrendingFlat, AttachMoney } from '@material-ui/icons';
+import { AccountBalance, Add, AttachMoney, SyncAlt } from '@material-ui/icons';
+
+// Local imports
 import { idle, txState, selectTxState, selectTxError, selectTxErrorState } from './apiSlice';
-import { Transfer } from './Transfer';
-import { CreateCDP } from './CreateCDP';
 import { Loading } from '../common/Loading';
+import { Wallet } from '../wallet/Wallet';
+import { DepositWithdraw } from '../cdp/DepositWithdraw';
+import { DrawRepay } from '../cdp/DrawRepay';
+// import { Transfer } from './Transfer';
+import { CreateCDP } from './CreateCDP';
 
 const txMessage = {
   [txState.PREPARING]: 'Preparing',
@@ -35,7 +43,7 @@ function txCompleted(state) {
 
 export function APIConnect({ cosmosAPI }) {
   const dispatch = useDispatch();
-  const [view, setView] = useState('transfer');
+  const [view, setView] = useState('wallet');
   const currentTxState = useSelector(selectTxState);
   const txError = useSelector(selectTxError);
   const txErrorState = useSelector(selectTxErrorState);
@@ -48,11 +56,17 @@ export function APIConnect({ cosmosAPI }) {
 
   if (txIsIdle(currentTxState)) {
     switch(view) {
-      case 'transfer':
-        component = <Transfer cosmosAPI={cosmosAPI} />
-        break;
-      case 'createCDP':
+      case 'wallet':
+        component = <Wallet cosmosAPI={cosmosAPI} />
+        break
+      case 'createcdp':
         component = <CreateCDP cosmosAPI={cosmosAPI} />
+        break;
+      case 'depositwithdraw':
+        component = <DepositWithdraw cosmosAPI={cosmosAPI} />
+        break;
+      case 'drawrepay':
+        component = <DrawRepay cosmosAPI={cosmosAPI} />
         break;
       default:
         break;
@@ -106,16 +120,23 @@ export function APIConnect({ cosmosAPI }) {
     <Box>
       { txIsIdle(currentTxState) &&
         <ToggleButtonGroup orientation="horizontal" value={view} exclusive onChange={handleChange}>
-        <ToggleButton value="transfer" aria-label="transfer">
-          <TrendingFlat />
-        </ToggleButton>
-        <ToggleButton value="createCDP" aria-label="createCDP">
-          <AttachMoney />
-        </ToggleButton>
+          <ToggleButton value="wallet" aria-label="wallet">
+            <AccountBalance />
+          </ToggleButton>
+          <ToggleButton value="createcdp" aria-label="createcdp">
+            <Add />
+          </ToggleButton>
+          <ToggleButton value="depositwithdraw" aria-label="depositwithdraw">
+            <AttachMoney />
+          </ToggleButton>
+          <ToggleButton value="drawrepay" aria-label="drawrepay">
+            <SyncAlt />
+          </ToggleButton>
         </ToggleButtonGroup>
       }
-      {component}
+        <Box>
+          {component}
+        </Box>
     </Box>
   )
 }
-

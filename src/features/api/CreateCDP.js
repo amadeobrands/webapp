@@ -3,6 +3,15 @@ import { useDispatch } from 'react-redux';
 import { Box, Button, TextField } from '@material-ui/core';
 import { postMsgCreateCdpAsync} from './apiSlice';
 
+// ------------------------------------------
+//                 Constants
+// ------------------------------------------
+const BNB_CONVERSION_FACTOR = 10 ** 8;
+const USDX_CONVERSION_FACTOR = 10 ** 6;
+
+// ------------------------------------------
+//            CreateCDP Component
+// ------------------------------------------
 export function CreateCDP({ cosmosAPI }) {
   const dispatch = useDispatch();
 
@@ -32,7 +41,7 @@ export function CreateCDP({ cosmosAPI }) {
             style={{ margin: 8 }}
             placeholder="100"
             margin="normal"
-            onChange={e => setCollateralAmount(e.target.value)}
+            onChange={e => setCollateralAmount(Number(e.target.value) * BNB_CONVERSION_FACTOR)}
             InputLabelProps={{
             value: collateralAmount,
             shrink: true
@@ -58,7 +67,7 @@ export function CreateCDP({ cosmosAPI }) {
             style={{ margin: 8 }}
             placeholder="100"
             margin="normal"
-            onChange={e => setPrincipalAmount(e.target.value)}
+            onChange={e => setPrincipalAmount(Number(e.target.value) * USDX_CONVERSION_FACTOR)}
             InputLabelProps={{
             value: principalAmount,
             shrink: true
