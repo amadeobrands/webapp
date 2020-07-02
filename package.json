@@ -26,7 +26,8 @@
     "build": "CI=false react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "doc": "jsdoc -c jsdoc.conf.js"
+    "doc": "jsdoc -c jsdoc.conf.js",
+    "coverage": "react-scripts test --coverage --watchAll=false"
   },
   "eslintConfig": {
     "extends": "react-app"
